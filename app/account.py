@@ -1,7 +1,7 @@
 from app.orm import ORM
 from app.trade import Trade
 from app.position import Position
-from .util import hash_password, get_price
+from .util import hash_password, get_pricerint("please check your username or password")
 
 
 class Account(ORM):
@@ -80,4 +80,28 @@ class Account(ORM):
         updates a Position if it exists, or creates a new Position for this 
         ticker in our database. saves a new Trade object 
         and updates self.balance"""
-        pass
+        #check current price
+        price = get_price(ticker) * amount
+
+        position = self.get_position_for(ticker)
+
+        if position.number_shares < amount:
+            raise ValueError("You don't have enough Share")
+        position.number_shares -=amount
+
+        self.balance += price
+
+        trade = Trade(ticker=ticker,quantity=amount,type=1,
+                      price=price,account_pk=self.pk)
+        
+        trade.save()
+        position.save()
+        self.save()
+
+    def deposit(self, amount):
+        if amount < 0:
+            raise ValueError("amount must be positive")
+        self.balance += amount
+
+
+

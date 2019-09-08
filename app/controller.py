@@ -1,29 +1,81 @@
-from app.account import Account
+#!/usr/bin/env python3
 
+from .account import Account
+from .util import hash_password, get_price
+import views
 
 def run():
-    pass
+    choice = views.welcome_menu()
+
+    if choice == "1": #create account 
+        name = views.get_username
+        password = views.get_password
+        hash_password = hash_password(password)
+        balance = views.get_balance
+        new_account = Account(username = name, hash_password = hash_password, balance = balance)
+        new_account.save()
+        main_menu(new_account)
+
+    elif choice == "2": #login
+        username = views.get_username()
+        password = views.get_password()
+        account = Account().login(username, password)
+
+        if not account:
+            views.bad_input()
+        else:
+            main_menu(account)
+
+    elif choice == "3":
+        return
+
+    else:
+        views.bad_input
 
 
-"""
-Sample execution
-Welcome to Terminal Trader!
-    
-    1. create account
-    2. login
-    3. quit
-Your choice: 2.
-Main Menu:
-    1. see balance & positions
-    2. deposit money
-    3. look up stock price
-    4. buy stock
-    5. sell stock
-    6. trade history
-etc.
-you should have useful output if a user inputs a stock that does not exist
-you should not allow a user to spend money they don't have or sell
-shares they don't have
-your display of positions or trades should be well-formatted, don't
-just print a python list
-"""
+def main_menu(account):
+    while True:
+        choice = views.main_menu()
+
+        if choice == "1": #see balance & positions
+            balance = account.balance
+            positions = account.get_positions
+            views.show_balance(balance)
+            views.show_positions(positions)
+            
+        elif choice == "2": #deposite money
+            amount = views.deposit_amount()
+            account.deposit(amount)
+            account.save()
+
+        elif choice == "3": #look up stock price
+            ticker = views.get_ticker()
+
+            try:
+                price = get_price(ticker)
+                views.stock_price(price)
+
+            except:
+                views.bad_stock(ticker)
+
+        elif choice == "4": #buy stock
+            ticker = views.get_ticker()
+            amount = views.share_tobuy()
+            account.buy(ticker, amount)
+            account.save()
+
+        elif choice == "5": #sell stock
+            ticker = views.get_ticker()
+            amount = views.share_tobuy()
+            account.sell(ticker, amount)
+            account.save()
+
+        elif choice == "6": #trade history
+            trades = account.get_trades()
+            views.trades(trades)
+
+            
+        elif choice == "7" :
+            return
+        else:
+            views.bad_input()
